@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Временные файлы внешних сортировок и тестов
+*.bin
+*.tmp*
