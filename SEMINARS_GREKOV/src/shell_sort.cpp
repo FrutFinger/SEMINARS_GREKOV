@@ -1,6 +1,5 @@
 #include "shell_sort.h"
 
-// Последовательность шагов Кнута: 1, 4, 13, 40, ...
 template <typename T>
 void shellSort(T* arr, int size)
 {

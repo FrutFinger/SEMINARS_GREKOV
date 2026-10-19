@@ -9,7 +9,6 @@ void binaryInsertionSort(T* arr, int size)
     {
         T key = arr[i];
 
-        // Бинарный поиск позиции вставки в отсортированной части [0, i)
         int left = 0, right = i;
         while (left < right)
         {
@@ -17,7 +16,7 @@ void binaryInsertionSort(T* arr, int size)
             if (key < arr[mid])
                 right = mid;
             else
-                left = mid + 1;      // равные идут правее -> сортировка устойчива
+                left = mid + 1;  
         }
 
         // Сдвиг элементов вправо и вставка

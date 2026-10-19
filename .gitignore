@@ -364,3 +364,9 @@ FodyWeavers.xsd
 # Временные файлы внешних сортировок и тестов
 *.bin
 *.tmp*
+# Большие файлы демонстрации и временные данные
+Demo/data/big_*
+Demo/data/tmp_*/
+test_data/
+test_tmp/
+*.bin

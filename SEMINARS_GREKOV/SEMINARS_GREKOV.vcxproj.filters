@@ -51,6 +51,9 @@
     <ClInclude Include="include\natural_merge_sort.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\merge_utils.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\insertion_sort.cpp">

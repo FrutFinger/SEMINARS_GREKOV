@@ -1,113 +1,57 @@
 #include "two_phase_merge_sort.h"
-#include <fstream>
-#include <cstdio>
+#include "merge_utils.h"
+#include <filesystem>
 #include <stdexcept>
 
 namespace
 {
     template <typename T>
-    bool readElem(std::ifstream& f, T& x)
+    void mergePhase(const std::string& b, const std::string& c,
+        const std::string& dst, std::size_t len)
     {
-        return static_cast<bool>(f.read(reinterpret_cast<char*>(&x), sizeof(T)));
-    }
-
-    template <typename T>
-    void writeElem(std::ofstream& f, const T& x)
-    {
-        f.write(reinterpret_cast<const char*>(&x), sizeof(T));
-    }
-
-    template <typename T>
-    long long countElements(const std::string& name)
-    {
-        std::ifstream f(name, std::ios::binary | std::ios::ate);
-        if (!f) throw std::runtime_error("Cannot open file: " + name);
-        return static_cast<long long>(f.tellg()) / static_cast<long long>(sizeof(T));
-    }
-
-    // Фаза 1: распределение серий длины len из src поочерёдно в b и c
-    template <typename T>
-    void distribute(const std::string& src, const std::string& nameB,
-        const std::string& nameC, long long len)
-    {
-        std::ifstream in(src, std::ios::binary);
-        std::ofstream b(nameB, std::ios::binary | std::ios::trunc);
-        std::ofstream c(nameC, std::ios::binary | std::ios::trunc);
-
-        bool toB = true;
-        long long cnt = 0;
-        T x;
-        while (readElem(in, x))
-        {
-            writeElem(toB ? b : c, x);
-            if (++cnt == len)
-            {
-                cnt = 0;
-                toB = !toB;
-            }
-        }
-    }
-
-    // Фаза 2: слияние пар серий длины len из b и c в dst
-    template <typename T>
-    void mergePairs(const std::string& nameB, const std::string& nameC,
-        const std::string& dst, long long len)
-    {
-        std::ifstream b(nameB, std::ios::binary);
-        std::ifstream c(nameC, std::ios::binary);
-        std::ofstream out(dst, std::ios::binary | std::ios::trunc);
-
-        T xb{}, xc{};
-        bool hasB = readElem(b, xb);
-        bool hasC = readElem(c, xc);
-
-        while (hasB || hasC)
-        {
-            long long cb = hasB ? len : 0;
-            long long cc = hasC ? len : 0;
-
-            while (cb > 0 || cc > 0)
-            {
-                bool takeB;
-                if (cb == 0)       takeB = false;
-                else if (cc == 0)  takeB = true;
-                else               takeB = !(xc < xb);
-
-                if (takeB)
-                {
-                    writeElem(out, xb);
-                    --cb;
-                    if (!(hasB = readElem(b, xb))) cb = 0;
-                }
-                else
-                {
-                    writeElem(out, xc);
-                    --cc;
-                    if (!(hasC = readElem(c, xc))) cc = 0;
-                }
-            }
-        }
+        merge_utils::Reader<T> rb(b), rc(c);
+        merge_utils::Writer<T> out(dst);
+        while (rb.valid() || rc.valid())
+            merge_utils::mergeFixed(rb, rc, out, len);
     }
 }
 
 template <typename T>
-void twoPhaseMergeSort(const std::string& fileName)
+void twoPhaseMergeSort(const std::string& inputFile, const std::string& tempDir,
+    std::size_t runSize, bool keepTemp)
 {
-    const long long total = countElements<T>(fileName);
-    if (total < 2) return;
+    namespace fs = std::filesystem;
+    if (!fs::exists(inputFile))
+        throw std::runtime_error("Input file not found: " + inputFile);
+    if (runSize == 0) runSize = 1;
+    fs::create_directories(tempDir);
 
-    const std::string fileB = fileName + ".tmpB";
-    const std::string fileC = fileName + ".tmpC";
+    const std::string fileB = merge_utils::tempPath(tempDir, "two_phase_b.txt");
+    const std::string fileC = merge_utils::tempPath(tempDir, "two_phase_c.txt");
 
-    for (long long len = 1; len < total; len *= 2)
+    std::size_t runs = merge_utils::distributeSorted<T>(inputFile, fileB, fileC, runSize);
+
+    if (runs > 0)
     {
-        distribute<T>(fileName, fileB, fileC, len);   // фаза 1
-        mergePairs<T>(fileB, fileC, fileName, len);   // фаза 2
+        std::size_t len = runSize;
+        while (true)
+        {
+            mergePhase<T>(fileB, fileC, inputFile, len);  
+            runs = (runs + 1) / 2;
+            if (runs == 1) break;                        
+
+            len *= 2;
+            merge_utils::distributeFixed<T>(inputFile, fileB, fileC, len); 
+        }
     }
 
-    std::remove(fileB.c_str());
-    std::remove(fileC.c_str());
+    if (!keepTemp)
+    {
+        merge_utils::removeIfExists(fileB);
+        merge_utils::removeIfExists(fileC);
+    }
 }
 
-template void twoPhaseMergeSort<int>(const std::string&);
-template void twoPhaseMergeSort<double>(const std::string&);
+template void twoPhaseMergeSort<int>(const std::string&, const std::string&, std::size_t, bool);
+template void twoPhaseMergeSort<double>(const std::string&, const std::string&, std::size_t, bool);
+template void twoPhaseMergeSort<float>(const std::string&, const std::string&, std::size_t, bool);

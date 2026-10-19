@@ -1,6 +1,11 @@
 #pragma once
+#include <cstddef>
 #include <string>
 
-// Сортирует бинарный файл с элементами типа T (двухфазное простое слияние).
+// Двухфазная сортировка простым слиянием текстового файла (число в строке).
+// inputFile - файл (сортируется на месте), tempDir - папка для временных файлов,
+// runSize   - сколько элементов сортируется в памяти за раз,
+// keepTemp  - не удалять временные файлы (для демонстрации).
 template <typename T>
-void twoPhaseMergeSort(const std::string& fileName);
+void twoPhaseMergeSort(const std::string& inputFile, const std::string& tempDir,
+    std::size_t runSize, bool keepTemp = false);

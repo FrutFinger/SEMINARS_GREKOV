@@ -11,7 +11,6 @@ void shakerSort(T* arr, int size)
 
     while (left < right)
     {
-        // Проход слева направо: самый большой "всплывает" вправо
         int last = left;
         for (int i = left; i < right; ++i)
         {
@@ -23,7 +22,6 @@ void shakerSort(T* arr, int size)
         }
         right = last;
 
-        // Проход справа налево: самый маленький "тонет" влево
         last = right;
         for (int i = right; i > left; --i)
         {

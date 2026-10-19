@@ -1,8 +1,7 @@
 #include "optimized_bubble_sort.h"
 #include <utility>
 
-// Улучшения: остановка, если за проход не было обменов,
-// и запоминание позиции последнего обмена (правее всё уже отсортировано).
+
 template <typename T>
 void optimizedBubbleSort(T* arr, int size)
 {

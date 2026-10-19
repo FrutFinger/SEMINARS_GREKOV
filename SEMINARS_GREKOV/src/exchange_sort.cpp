@@ -1,7 +1,6 @@
 #include "exchange_sort.h"
 #include <utility>
 
-// Каждый элемент i сравнивается со всеми правее; при нарушении порядка - обмен.
 template <typename T>
 void exchangeSort(T* arr, int size)
 {
